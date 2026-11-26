@@ -1,0 +1,68 @@
+1
+00:00:00,400 --> 00:00:01,800
+Hi, I'm Santhosh M K.
+
+2
+00:00:01,956 --> 00:00:05,791
+I replaced slow queries and manual deploys
+with lean full-stack and AI systems.
+
+3
+00:00:06,000 --> 00:00:09,548
+At MergeX, I built Next.js ecommerce
+and an Electron POS,
+
+4
+00:00:09,598 --> 00:00:12,086
+tuning SQL for nearly 50% faster APIs.
+
+5
+00:00:12,344 --> 00:00:16,576
+At AstroVed, I built and optimized
+AI chatbots, cutting costs 60%.
+
+6
+00:00:16,769 --> 00:00:19,840
+At Web Crafters, I built GitHub Actions CI/CD
+
+7
+00:00:19,840 --> 00:00:22,784
+and migrated VPS apps to serverless,
+cutting fixed costs.
+
+8
+00:00:23,050 --> 00:00:27,262
+Beyond internships, I ship reverse-engineered
+Google Maps tools for AI agents,
+
+9
+00:00:27,307 --> 00:00:30,448
+free self-healing Cloudflare tunnels
+exposing local servers online,
+
+10
+00:00:30,576 --> 00:00:34,390
+and M14U Stream, a music player
+with sub-5ms listen-along sync.
+
+11
+00:00:35,440 --> 00:00:36,624
+Over 15 shipped tools.
+
+12
+00:00:36,885 --> 00:00:38,592
+TechX, technical club, leader.
+
+13
+00:00:38,752 --> 00:00:41,460
+And NPTEL Elite certified
+in Cloud and Java.
+
+14
+00:00:41,696 --> 00:00:44,538
+I'm currently open to full-stack
+and AI engineering roles.
+
+15
+00:00:44,798 --> 00:00:45,552
+Reach out below.

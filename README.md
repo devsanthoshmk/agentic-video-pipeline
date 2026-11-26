@@ -47,6 +47,16 @@ npm run render:demo  # Render the starter composition to out/demo.mp4
 
 ---
 
+## Sample Video
+
+See a complete 48-second, 1080p (`1920×1080`, 30 fps) portfolio introduction produced end-to-end with this pipeline (multi-agent script + art direction + Remotion motion graphics + Kokoro 82M narration + Openverse CC BY music + FFmpeg mastering):
+
+- **Video:** [`examples/sample-portfolio-intro.mp4`](examples/sample-portfolio-intro.mp4) (`8.1 MB`, H.264 High L4.1, `bt709`, `-15.6 LUFS`)
+- **Captions (SRT):** [`examples/sample-portfolio-intro.srt`](examples/sample-portfolio-intro.srt)
+- **Audio Credit:** Music by zero-project | www.zero-project.gr (CC BY 4.0)
+
+---
+
 ## Using with OpenCode (Out of the Box)
 
 1. Open this repository in **OpenCode** or **OpenChamber**.
