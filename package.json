@@ -1,12 +1,12 @@
 {
-  "name": "opencode-video-pipeline",
+  "name": "agentic-video-pipeline",
   "version": "1.0.0",
-  "description": "Agentic code-to-video pipeline powered by Remotion, FFmpeg, Kokoro TTS, and Openverse. Works out of the box with OpenCode and includes a universal harness adapter for other AI coding agents.",
+  "description": "Agentic code-to-video pipeline powered by Remotion, FFmpeg, Kokoro TTS, and Openverse. Works out of the box with OpenCode and includes a universal harness adapter for Claude Code, Codex, Cursor, and other AI coding agents.",
   "license": "MIT",
   "private": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/devsanthoshmk/opencode-video-pipeline.git"
+    "url": "https://github.com/devsanthoshmk/agentic-video-pipeline.git"
   },
   "keywords": [
     "opencode",

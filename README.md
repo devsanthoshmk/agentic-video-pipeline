@@ -1,4 +1,4 @@
-# OpenCode Video Pipeline
+# Agentic Video Pipeline
 
 **Agentic code-to-video and footage editing pipeline powered by Remotion, FFmpeg, Kokoro TTS, and Openverse.**  
 Works out of the box with **OpenCode (V2)** and includes a universal [`HARNESS_ADAPTER.md`](HARNESS_ADAPTER.md) so AI coding agents in **Claude Code, Codex CLI, Cursor, Windsurf, Gemini CLI**, and other runners can adapt and run the entire workflow seamlessly.
@@ -12,7 +12,7 @@ Works out of the box with **OpenCode (V2)** and includes a universal [`HARNESS_A
 
 ## Why This Pipeline?
 
-Most AI video workflows either rely on opaque cloud generators or dump single-prompt React code into a shared folder. **OpenCode Video Pipeline** gives your AI coding agent a structured, reproducible local production studio:
+Most AI video workflows either rely on opaque cloud generators or dump single-prompt React code into a shared folder. **Agentic Video Pipeline** gives your AI coding agent a structured, reproducible local production studio:
 
 - **Programmatic Motion Graphics (Remotion + React/TypeScript):** Build frame-accurate animations, kinetic typography, data visualizations, and multi-scene compositions locally.
 - **Deterministic Footage Editing (FFmpeg + FFprobe):** Probe, trim, crop, splice, and transcode existing video clips with non-destructive, atomic exports (`-n`, no accidental overwrites).
@@ -32,8 +32,8 @@ Most AI video workflows either rely on opaque cloud generators or dump single-pr
 
 ### Install & Verify
 ```sh
-git clone https://github.com/devsanthoshmk/opencode-video-pipeline.git
-cd opencode-video-pipeline
+git clone https://github.com/devsanthoshmk/agentic-video-pipeline.git
+cd agentic-video-pipeline
 npm install
 npm run smoke
 ```
