@@ -1,0 +1,9 @@
+/node_modules/
+/out/
+/videos/*/out/
+/videos/*/public/
+/public/media/*
+!/public/media/.gitkeep
+.env*
+.agent/
+

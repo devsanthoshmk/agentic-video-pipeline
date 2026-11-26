@@ -1,0 +1,52 @@
+{
+  "name": "opencode-video-pipeline",
+  "version": "1.0.0",
+  "description": "Agentic code-to-video pipeline powered by Remotion, FFmpeg, Kokoro TTS, and Openverse. Works out of the box with OpenCode and includes a universal harness adapter for other AI coding agents.",
+  "license": "MIT",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/devsanthoshmk/opencode-video-pipeline.git"
+  },
+  "keywords": [
+    "opencode",
+    "remotion",
+    "video-pipeline",
+    "ffmpeg",
+    "ai-agents",
+    "multi-agent",
+    "motion-graphics",
+    "kokoro-tts",
+    "claude-code",
+    "agentic-workflow"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "video:new": "node scripts/new-video.mjs",
+    "video:preview": "node scripts/video-render.mjs preview",
+    "video:render": "node scripts/video-render.mjs render",
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts",
+    "render:demo": "npm run render -- Demo out/demo.mp4 --overwrite=false --concurrency=2",
+    "still": "remotion still src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "media:probe": "node scripts/media.mjs probe",
+    "media:trim": "node scripts/media.mjs trim",
+    "test:media": "node scripts/test-media.mjs",
+    "audio:search": "node scripts/audio-search.mjs",
+    "audio:voice": "node scripts/audio-voice.mjs",
+    "smoke": "npm run typecheck && npm run test:media && node scripts/test-render.mjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.546",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "remotion": "4.0.546"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "typescript": "~5.9.3"
+  }
+}
