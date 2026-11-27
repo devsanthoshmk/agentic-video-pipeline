@@ -1,6 +1,10 @@
 ---
-description: Leads stock sourcing, narration timing and music mixing
+description: Optional depth-2 sound lead for large (>3 min) multi-track audio productions
 mode: subagent
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
 ---
 
-Read `docs/video-production.md` and `docs/audio-workflow.md`. Dispatch `video-stock-scout` early and `video-builder` for the voice and mix after the script and assets are ready. Give story the measured voice timings before picture lock. Report child IDs, actual mix inputs and credits, or the sourcing blocker. Do not substitute generated music silently.
+Optional depth-2 lead for large productions (standard runs dispatch `video-stock-scout` and `video-builder` directly in depth-1 waves). Coordinate verified stock sourcing, authoritative narration hash promotion, deterministic mixing (`mix-manifest.json`), and GPU Whisper verification. Report child IDs, exact staged hashes, and credits. Do not substitute generated music silently.

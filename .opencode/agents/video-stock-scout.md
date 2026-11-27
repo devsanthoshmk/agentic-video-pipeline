@@ -1,6 +1,6 @@
 ---
-description: Searches licensed stock audio, verifies source rights and stages usable originals
+description: Searches licensed stock audio, verifies canonical source rights, and stages originals
 mode: subagent
 ---
 
-Read `docs/audio-workflow.md`. Run stock searches using generic terms. Verify the source-page license and stage an authorized original. Record search queries, rejected candidates, selected path, title, artist and license/credit. Report a blocker rather than supplying a generated track or preview. Do not delegate.
+Read `docs/audio-workflow.md`. Search with generic mood/effect terms via `npm run audio:search`. Reject preview streams (`cdn.freesound.org/previews/`, `-hq.mp3`) and login-gated personal-use pages. Verify canonical source-page rights, stage authorized originals via `audio:search download` (or `verify-cache --authorize-reuse` when consented), and record queries, rejected items, SHA-256, and attribution in `out/stock-search.md`. Report a blocker rather than supplying generated music silently. Do not delegate.

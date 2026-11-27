@@ -1,6 +1,6 @@
 ---
-description: Independently rewrites a draft video script before production
+description: Rewrites scripts and locks authoritative TTS narration duration and beat timings
 mode: subagent
 ---
 
-Read the draft and evidence. Write a revised script to the assigned final path, preserving the draft. Read it aloud mentally for cadence, remove unsupported claims and jargon, and give the editor a visual action for each beat. Note what changed and flag lines that need a timed TTS trial. Do not delegate.
+Read the draft and supplied evidence. Write the revised script to `out/script-final.md` while preserving the draft. Run `npm run audio:voice -- scratch.wav --text-file <narration.txt> --scratch --norm --cache --timings out/beat-map.json` using the exact delivery voice, language, speed, and `---` segmentation to measure real duration and sample/frame offsets before Story & Narration Lock. Verify join seams on multi-segment takes, remove unsupported claims and jargon, and report the approved `wav_sha256` and `beat-map.json` path. Do not delegate.

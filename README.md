@@ -1,6 +1,6 @@
 # Agentic Video Pipeline
 
-**Agentic code-to-video and footage editing pipeline powered by Remotion, FFmpeg, Kokoro TTS, and Openverse.**  
+**Agentic code-to-video and footage editing pipeline powered by Remotion, FFmpeg, Kokoro TTS, Whisper, and Openverse.**  
 Works out of the box with **OpenCode (V2)** and includes a universal [`HARNESS_ADAPTER.md`](HARNESS_ADAPTER.md) so AI coding agents in **Claude Code, Codex CLI, Cursor, Windsurf, Gemini CLI**, and other runners can adapt and run the entire workflow seamlessly.
 
 [![Node.js](https://img.shields.io/badge/Node.js-22%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
@@ -12,13 +12,14 @@ Works out of the box with **OpenCode (V2)** and includes a universal [`HARNESS_A
 
 ## Why This Pipeline?
 
-Most AI video workflows either rely on opaque cloud generators or dump single-prompt React code into a shared folder. **Agentic Video Pipeline** gives your AI coding agent a structured, reproducible local production studio:
+Most AI video workflows either rely on opaque cloud generators or dump single-prompt React code into a shared folder. **Agentic Video Pipeline** gives your AI coding agent a fast, reproducible local production studio:
 
-- **Programmatic Motion Graphics (Remotion + React/TypeScript):** Build frame-accurate animations, kinetic typography, data visualizations, and multi-scene compositions locally.
-- **Deterministic Footage Editing (FFmpeg + FFprobe):** Probe, trim, crop, splice, and transcode existing video clips with non-destructive, atomic exports (`-n`, no accidental overwrites).
+- **Programmatic Motion Graphics (Remotion + React/TypeScript):** Build frame-accurate animations, kinetic typography, data visualizations, and multi-scene compositions locally (`16:9`, `9:16`, `1:1`).
+- **Zero-Encode Live Preview & Single-Bundle Two-Phase QA:** Iterate live in loopback Remotion Studio (`video:preview`), run pre-encode QA from a single immutable bundle (`video:review -- pre` with 1:1 native stills, `360px` playback checks, labeled contact sheets, and transition slices), render `final.mp4` once under an OOM-recovery supervisor, and verify post-encode decode/loudness/hashes before atomic publication (`publish`).
+- **Deterministic Footage Editing & Platform Mastering (FFmpeg + FFprobe):** Non-overwriting `media:probe`, `media:trim`, `media:concat`, `media:speed`, `media:mix`, `media:captions`, and conditional platform presets (`youtube-1080p`, `linkedin-1080p`, `shorts-1080x1920`, `square-1080x1080` with `zscale` + `tonemap=hable` HDR→SDR support).
+- **Offline Kokoro Narration, GPU Whisper SRT & Locked-Picture Audio Patching:** Generate English narration with `beat-map.json` timing (`--scratch`, `--timings`, `--variants`, `--cache`, opt-in `--gpu auto|on`), transcribe/flag pronunciation & generate `.srt` via `faster-whisper` (`audio:transcribe`), and patch single sentences onto clean stems with `-c:v copy` packet invariance (`audio:patch`).
 - **Isolated Video Runs (`videos/<run>/`):** Every new video or remake gets its own sandboxed `brief.md`, `src/`, `public/`, and `out/` directory—never overwriting prior work.
-- **Multi-Agent Production Crew:** 11 specialized OpenCode agent roles (`video-planner`, `video-writer`, `video-script-editor`, `video-visual-lead`, `video-art-director`, `video-motion-designer`, `video-builder`, `video-sound-lead`, `video-stock-scout`, `video-reviewer`, `video-quality-checker`) with strict creative and technical quality gates.
-- **Offline English Voiceover (Kokoro 82M) & Stock Audio (Openverse):** Generate local narration WAVs and search CC0 / CC BY music and sound effects with automatic credit tracking.
+- **Depth-1 Multi-Specialist Production Crew:** 11 specialized OpenCode agent roles (`video-writer`, `video-script-editor`, `video-art-director`, `video-motion-designer`, `video-builder`, `video-stock-scout`, `video-quality-checker`, `video-reviewer`, `video-planner`, plus optional depth-2 leads `video-visual-lead` and `video-sound-lead`) with enforceable read-only QA boundaries and hash-bound report invalidation.
 - **Universal Harness Adapter:** Ships with [`HARNESS_ADAPTER.md`](HARNESS_ADAPTER.md) so any AI agent can map the instructions, subagents, and skills to its own runtime.
 
 ---
@@ -27,8 +28,9 @@ Most AI video workflows either rely on opaque cloud generators or dump single-pr
 
 ### Prerequisites
 - **Node.js 22+** and **npm**
-- **FFmpeg** (with `libx264` and `aac`) and **FFprobe** on `PATH`
-- *(Optional, for local narration)* Python environment with `kokoro-onnx` and `soundfile` (see [Audio Workflow](docs/audio-workflow.md))
+- **FFmpeg** (with `libx264` and `aac`; `zscale`/`tonemap`/`drawtext` filters; optional `h264_nvenc`) and **FFprobe** on `PATH`
+- *(Optional, for local narration)* Python environment with `kokoro-onnx` and `soundfile` (plus optional isolated `.venv-gpu` with `onnxruntime-gpu`; see [Audio Workflow](docs/audio-workflow.md))
+- *(Optional, for local transcription & SRT)* Python environment with `faster-whisper` and `ctranslate2`
 
 ### Install & Verify
 ```sh
@@ -67,8 +69,8 @@ See a complete 48-second, 1080p (`1920×1080`, 30 fps) portfolio introduction pr
   > *"Create a 12-second 1080×1920 animated intro for my study channel. Use dark green and cream, start with 'Study with me', and export an MP4."*
 - **Edit Existing Footage:**  
   > *"Trim `public/media/lesson.mp4` from 00:12.5 to 00:24, keep the original audio, and export `lesson-clip.mp4`."*
-- **Add Voiceover & Stock Music:**  
-  > *"Write a 20-second script, generate a Kokoro narration track, find CC0 lo-fi background music on Openverse, and mix it with the video."*
+- **Patch Audio Without Re-Rendering Video:**  
+  > *"Replace sentence 2 in `videos/<run>/out/final.mp4` using its clean stems, update cue 2 in `final.srt`, and export `final-v2.mp4`."*
 
 ---
 
@@ -77,37 +79,34 @@ See a complete 48-second, 1080p (`1920×1080`, 30 fps) portfolio introduction pr
 Using **Claude Code**, **OpenAI Codex CLI**, **Cursor**, **Windsurf**, **Gemini CLI**, or another agent runner?  
 Point your agent to [`HARNESS_ADAPTER.md`](HARNESS_ADAPTER.md) (or ask: *"Read HARNESS_ADAPTER.md and adapt this repo to my current harness"*). It documents:
 - How to map `AGENTS.md` → `CLAUDE.md` / `GEMINI.md` / `.cursor/rules/` / `.windsurfrules`
-- How to map `.opencode/agents/*.md` and read-only permissions to your harness's subagents
+- How to map `.opencode/agents/*.md` and read-only (`edit` / `shell` deny) permissions to your harness's subagents
 - How to map `.agents/skills/` and `.opencode/skills/`
-- How to run the production pipeline sequentially when subagent dispatch isn't available
+- How to run depth-1 or sequential workflows when nested dispatch isn't available
 
 ---
 
-## Architecture & Multi-Agent Workflow
+## Architecture & Multi-Agent Workflow (Depth-1 Default)
 
 ```text
-L0 Main (Integrates shared files, runs final render)
-  ├── L1 Story Lead (video-planner)
-  │     ├── L2 video-writer        → out/script-draft.md
-  │     └── L2 video-script-editor → out/script-final.md
-  ├── L1 Visual Lead (video-visual-lead)
-  │     ├── L2 video-art-director    → out/art-direction.md
-  │     ├── L2 video-motion-designer → signature prototype
-  │     └── L2 video-builder         → scene components / FFmpeg edits
-  ├── L1 Sound Lead (video-sound-lead)
-  │     ├── L2 video-stock-scout     → Openverse CC0/CC BY leads + credits
-  │     └── L2 video-builder         → Kokoro TTS voiceover + audio mix
-  └── L1 Reviewer (video-reviewer)
-        ├── L2 video-quality-checker → Picture & motion QA
-        └── L2 video-quality-checker → Audio & provenance QA
+L0 Main (Integrates shared files, builds single immutable bundle, supervises render)
+  ├── [Wave 1] video-writer ──► video-script-editor (with --scratch TTS ──► Narration Lock + beat-map.json)
+  ├── [Wave 1] video-art-director ──► out/art-direction.md
+  ├── [Wave 1] video-stock-scout  ──► verified-asset manifest + staged audio (writable)
+  ├── [Wave 2] video-motion-designer ──► shared theme.ts + reusable primitives (real-time Motion Lock)
+  ├── [Wave 3] N × video-builder (disjoint scenes) ‖ video-builder (mix from approved WAV hash + mix-manifest.json)
+  └── [Wave 4] Pre-Encode & Post-Encode QA:
+                 2 × video-quality-checker (parallel, edit + shell denied) ──► video-reviewer (adjudication)
+                 ──► Single Staged Render ──► Post-Encode QA ──► Atomic publish
 ```
+
+*(Optional depth-2 leads `video-visual-lead` and `video-sound-lead` remain available for large >3 min productions; footage-only edits and locked-picture patches route directly without visual/story fan-out.)*
 
 ---
 
 ## Project Structure
 
 ```text
-├── AGENTS.md                 # Core workflow & orchestration rules (OpenCode native)
+├── AGENTS.md                 # Core workflow & depth-1 orchestration rules (OpenCode native)
 ├── HARNESS_ADAPTER.md        # Universal adapter for Claude Code, Codex, Cursor, Gemini CLI, etc.
 ├── opencode.jsonc            # OpenCode default model & subagent depth config
 ├── .opencode/
@@ -115,17 +114,22 @@ L0 Main (Integrates shared files, runs final render)
 │   └── skills/               # Project-local frontend-design skill
 ├── .agents/skills/           # Remotion best-practices skill pack
 ├── docs/
-│   ├── video-workflow.md     # Remotion & FFmpeg command reference
-│   ├── video-production.md   # Multi-agent production playbook
-│   ├── video-design.md       # Visual design gate & frame review rubric
-│   ├── audio-workflow.md     # Kokoro TTS, Openverse stock search & mixing guide
+│   ├── video-workflow.md     # Remotion, FFmpeg, and platform export command reference
+│   ├── video-production.md   # Dependency graph, two-phase QA & Release Decision Table
+│   ├── video-design.md       # Visual design gate & legibility review rubric
+│   ├── audio-workflow.md     # Kokoro TTS, Whisper SRT, audio-patch & Openverse stock guide
 │   └── sources.md            # Remotion skills & OpenCode V2 reference
 ├── scripts/
 │   ├── new-video.mjs         # Allocates isolated videos/<run>/ folders
-│   ├── video-render.mjs      # Run-scoped Studio preview & CPU/GPU render
-│   ├── media.mjs             # Safe FFmpeg probe & non-overwriting trim
-│   ├── audio-voice.mjs       # Kokoro 82M / Supertonic TTS wrapper
-│   ├── audio-search.mjs      # Openverse CC0/CC BY audio search
+│   ├── review-bundle.mjs     # Single-bundle pre-encode sheets/stills/slices & post-encode QA
+│   ├── video-render.mjs      # Loopback Studio, OOM-safe staged render, hash-checked publish & export presets
+│   ├── media.mjs             # Non-overwriting FFmpeg probe, trim, concat, speed, mix & captions
+│   ├── audio-voice.mjs       # Kokoro 82M / Supertonic TTS wrapper (CPU baseline + opt-in GPU venv)
+│   ├── audio-kokoro.py       # Kokoro runner (--scratch, --norm, --timings, --variants, --cache)
+│   ├── audio-patch.mjs       # Locked-picture stem audio patcher (-c:v copy + packet/PCM checks)
+│   ├── transcribe.mjs        # Local faster-whisper transcription, ASR flags & SRT generator
+│   ├── audio-search.mjs      # Multi-source Openverse search & SHA-256 verified-asset manifest
+│   ├── capture-screenshots.mjs # Parameterized headless webpage capture helper
 │   └── test-*.mjs            # Smoke tests for media & Remotion rendering
 ├── src/
 │   ├── index.ts              # Remotion entry point
@@ -141,13 +145,18 @@ L0 Main (Integrates shared files, runs final render)
 | Command | Description |
 | :--- | :--- |
 | `npm run video:new -- "Title"` | Create a new isolated run folder under `videos/<slug>-001/` |
-| `VIDEO_RUN=videos/<run> npm run video:preview` | Launch Remotion Studio scoped to a specific run |
-| `VIDEO_RUN=videos/<run> npm run video:render -- Main final.mp4` | Render a run's composition to `videos/<run>/out/final.mp4` |
-| `npm run media:probe -- <file>` | Inspect video/audio streams and metadata with FFprobe |
-| `npm run media:trim -- <file> <start> <dur> <out.mp4>` | Non-destructively trim footage to `out/` |
-| `npm run audio:voice -- voice.wav --text-file out/narration.txt` | Generate local English narration via Kokoro 82M |
-| `npm run audio:search -- music "calm lo-fi"` | Search Openverse for CC0 / CC BY music or sound effects |
-| `npm run smoke` | Run TypeScript check, FFmpeg tests, and Remotion render test |
+| `VIDEO_RUN=videos/<run> npm run video:preview` | Launch loopback (`127.0.0.1`) Remotion Studio scoped to a run |
+| `VIDEO_RUN=videos/<run> npm run video:review -- pre Main` | Bundle once and emit contact sheets, 1:1 stills, `360px` checks & optional `--slice` |
+| `VIDEO_RUN=videos/<run> npm run video:render -- Main final.mp4 cpu --stage-only` | Render verified bundle inside OOM-recovery supervisor (`4 → 2 → 1`) |
+| `VIDEO_RUN=videos/<run> npm run video:review -- post <staged.mp4>` | Verify decoded streams, `ebur128` loudness, encoded frames & beat-map coverage |
+| `VIDEO_RUN=videos/<run> npm run video:export -- <in.mp4> <preset> <out.mp4>` | Conditional mastering (`youtube-1080p`, `linkedin-1080p`, `shorts-1080x1920`, `square-1080x1080`) |
+| `npm run media:probe / trim / concat / speed / mix / captions` | Non-overwriting FFmpeg footage and caption toolkit |
+| `npm run audio:voice -- voice.wav --text-file out/narration.txt` | Local Kokoro narration (`--scratch`, `--norm`, `--timings`, `--variants`, `--cache`, `--gpu`) |
+| `npm run audio:transcribe -- <media> --srt out.srt` | Local `faster-whisper` transcription & SRT generator (`--gpu auto|on|off`) |
+| `npm run audio:patch -- --video <mp4> --mix-manifest <json> ...` | Locked-picture stem audio splice (`-c:v copy` + PCM & packet invariance checks) |
+| `npm run audio:search -- music "calm lo-fi"` | Search Openverse (`wikimedia_audio` + `freesound` + `jamendo`) & stage verified assets |
+| `npm run capture -- --url <url> --out <file.png>` | Headless Chromium screenshot helper |
+| `npm run smoke` | Run TypeScript check, FFmpeg media tests, and Remotion render test |
 
 ---
 

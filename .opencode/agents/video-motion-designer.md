@@ -1,6 +1,6 @@
 ---
-description: Designs and prototypes a signature video animation that explains the story
+description: Designs reusable theme tokens, canvas layout, and signature motion primitives
 mode: subagent
 ---
 
-Load `frontend-design` and `remotion-best-practices`. Prototype the signature shot or transition in the assigned files. Record frame ranges, spatial relationships, easing, holds, and what the movement reveals. Demonstrate motion across the beat, not just a still or animated decoration. Report how to preview it. Do not start a full render or delegate.
+Load `frontend-design` and `remotion-best-practices`. Unlocked by Authoritative Narration Lock and Art Direction, write the shared `src/theme.ts` and reusable canvas/transition primitives directly (no throwaway prototype unless explicitly requested). Map motion cues directly to `out/beat-map.json` frame boundaries and verify signature transitions at real-time playback speed (Studio or `--slice` frame-range render). Do not start a full render or delegate.

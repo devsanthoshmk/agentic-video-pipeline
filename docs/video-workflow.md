@@ -1,30 +1,38 @@
 # Video workflow reference
 
-## Create or compose
+## Create or compose (Remotion)
 
-Add a component under `src/` and register it under a distinct composition ID in `src/Root.tsx`. Keep `Demo` intact for the smoke test. Use integer frame boundaries (`Math.round(seconds * fps)`), frame-driven animations, and local `staticFile('media/...')` paths. Stage authorized assets in `public/media/`; avoid relying on remote assets. Keep text inside safe margins and verify that captions don't overlap or clip. Render stills at meaningful frames before committing to a long export.
+Add components under `src/` (or `videos/<run>/src/`) and register compositions in `Root.tsx`. Keep root `Demo` intact for `npm run smoke`. Use integer frame boundaries (`Math.round(seconds * fps)`), frame-driven animations, and local `staticFile('media/...')` paths.
 
 ```sh
 npm run typecheck
-npm run studio
-npm run still -- Demo out/demo-frame.png --frame=48 --overwrite=false
-npm run render -- Demo out/demo.mp4 --overwrite=false --concurrency=2
+VIDEO_RUN=videos/<run> npm run video:preview                    # Loopback Studio (127.0.0.1)
+VIDEO_RUN=videos/<run> npm run video:preview-stop               # Clean Studio teardown
+VIDEO_RUN=videos/<run> npm run video:review -- pre Main --beat-map videos/<run>/out/beat-map.json --slice 140:180
+VIDEO_RUN=videos/<run> npm run video:render -- Main final.mp4 cpu --bundle videos/<run>/out/.bundle-<hash> --stage-only
+VIDEO_RUN=videos/<run> npm run video:review -- post videos/<run>/out/.staged-<pid>-final.mp4
 ```
 
-## Edit existing footage
+## Edit existing footage & captions (FFmpeg)
+
+All `media:*` helpers preserve cadence, geometry, colorspace, and streams by default, stage privately, and refuse to overwrite existing outputs:
 
 ```sh
 npm run media:probe -- 'public/media/raw clip.mp4'
-npm run media:trim -- 'public/media/raw clip.mp4' 2.5 7.5 highlight.mp4
+VIDEO_RUN=videos/<run> npm run media:trim -- 'public/media/raw.mp4' 2.5 7.5 highlight.mp4
+VIDEO_RUN=videos/<run> npm run media:concat -- joined.mp4 clip1.mp4 clip2.mp4 [--normalize]
+VIDEO_RUN=videos/<run> npm run media:speed -- highlight.mp4 1.25 fast.mp4
+VIDEO_RUN=videos/<run> npm run media:mix -- fast.mp4 vo.wav mixed.mp4 --bed bed.mp4 --vo-offset 0.5
+VIDEO_RUN=videos/<run> npm run media:captions -- mixed.mp4 subs.srt captioned.mp4 --mode soft|burn
 ```
 
-`trim` takes a start and a **duration** in seconds and publishes to `out/`. Use a reviewed FFmpeg command for other edits. Quote paths, use local inputs, select wanted video/audio streams deliberately, use `-n` and a new destination, and keep the exact edit recipe. For edits where keyframe alignment matters, re-encode instead of blindly using stream copy. If you need captions, accept a transcript or SRT from the user; no transcription engine is installed by default.
+## Conditional Social & Platform Mastering (`video:export`)
 
-## Verify each export
+Normalization, aspect fit (`contain` pad vs `cover` crop), and HDR→SDR tone-mapping (`zscale` + `tonemap=hable`) apply **only** via explicit export presets (use Remotion to `recompose` layouts):
 
 ```sh
-ffprobe -v error -show_streams -show_format -of json out/highlight.mp4
-ffmpeg -v error -xerror -i out/highlight.mp4 -map 0:v:0 -map '0:a?' -f null -
+VIDEO_RUN=videos/<run> npm run video:export -- videos/<run>/out/final.mp4 youtube-1080p yt-1080p.mp4 --fit contain --encoder libx264
+VIDEO_RUN=videos/<run> npm run video:export -- videos/<run>/out/final.mp4 shorts-1080x1920 shorts.mp4 --fit cover
 ```
 
-Compare duration, resolution, FPS, aspect and audio streams against the brief. Check cut boundaries, text, layout and levels using local playback or stills, or state that visual/audio review remains. A successful render or decode does not prove the creative brief was met. For sensitive footage, let the user review locally unless they explicitly allow sending frames to the model.
+Supported presets: `youtube-1080p`, `linkedin-1080p`, `shorts-1080x1920`, `square-1080x1080`. NVENC (`--encoder nvenc`) and Remotion `gpu` remain opt-in until validated against CPU `libx264` on your composition.

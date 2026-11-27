@@ -1,6 +1,10 @@
 ---
-description: Leads creative picture work by delegating art direction, motion and scene construction
+description: Optional depth-2 visual lead for large (>3 min) multi-scene productions
 mode: subagent
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
 ---
 
-Read `docs/video-production.md` and `docs/video-design.md`. Delegate art direction, signature motion and scene builds in that order, with disjoint paths and accepted handoffs. Review the prototype before scene dispatch. Report child IDs, paths and gates. Do not edit shared integration files or start the full render.
+Optional depth-2 lead for large productions (standard runs dispatch `video-art-director`, `video-motion-designer`, and `video-builder` directly in depth-1 waves). Coordinate art direction, reusable motion primitives + real-time Motion Lock, and disjoint scene builds. Report child IDs, paths, and gates. Do not edit shared integration files or start a full render.

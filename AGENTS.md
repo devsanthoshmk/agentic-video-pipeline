@@ -2,29 +2,33 @@
 
 > **Using a non-OpenCode harness (Claude Code, Codex, Cursor, Gemini CLI, Windsurf, etc.)?** Read [HARNESS_ADAPTER.md](HARNESS_ADAPTER.md) first and adapt the workspace instructions, agent profiles, and skills to your active runner before starting.
 
-For requests to create, edit, preview or export video, follow this workflow. In this workspace, a request to create or edit a video counts as a request to export a playable file for the Remotion skill, unless the user asks for a plan or preview only.
+For requests to create, edit, preview or export video, follow this workflow. A request to create or edit a video counts as a request to export a playable MP4 unless the user asks for a plan or preview only.
 
-**Isolation.** For every new video or clean remake, run `npm run video:new -- "Title"` once before delegating or writing files. Use its returned `videos/<run>/` folder for the brief, source, staged media and exports. A repeated title or prompt still gets a fresh run. Do not copy or import prior runs' designs, code, or assets unless requested. For an explicit revision of an existing export, identify the target run and write a new filename there. See [run commands](videos/README.md).
+**Isolation.** For every new video or clean remake, run `npm run video:new -- "Title"` once before delegating or writing files. Use its returned `videos/<run>/` folder for `brief.md`, `src/`, `public/`, and `out/`. A repeated title gets a fresh run. Do not copy or import prior runs' designs, code, or assets unless explicitly requested. For a revision of an existing export, target that run and write a new filename without overwriting prior exports. See [run commands](videos/README.md).
 
-1. **Brief.** Identify intended output, audience, aspect, duration, required text, and source assets. Ask only when a missing asset or consequential decision blocks work. For new motion graphics default to 1280×720, 30 fps, H.264 MP4. For footage edits preserve aspect, cadence and audio unless asked otherwise. Probe footage before planning edits.
-2. **Route.** Trim, crop, resize, splice and transcode existing footage with FFmpeg. Use Remotion for composed scenes, animated text, graphics, captions or overlays; load `remotion-best-practices` and read the linked rules for the APIs you use. See [workflow reference](docs/video-workflow.md) for commands and verification.
-3. **Plan and implement.** Do one straightforward operation directly. For original creative videos and substantive remakes, follow the [production playbook](docs/video-production.md): delegate script drafting and rewriting separately, art direction and motion separately, and stock sourcing and mix separately. This applies even to short portfolio videos. For other multi-stage edits, use `video-planner` and separate `video-builder` assignments. The main agent integrates and renders.
-4. **Verify.** For multi-stage work delegate to `video-reviewer` with the brief, source metadata, artifact path and expected checks. Verify simple edits directly. Return failures to the original worker with evidence and retest; after three unsuccessful correction rounds report the blocker.
-5. **Deliver.** Report the actual run export path, duration, resolution and checks performed. Say what remains unverified. Leave source media untouched and keep editable composition code or the edit recipe.
+1. **Brief.** Identify output, audience, aspect (`16:9`, `9:16`, `1:1`), duration, required text, and source assets. Default motion graphics to `1280×720`, `30 fps`, H.264 MP4 (or requested social preset). For footage edits preserve cadence, geometry, colorspace, and streams unless a preset/flag explicitly requests normalization. Probe footage before planning edits.
+2. **Route by Scope.**
+   - **Footage edits & targeted patches (`trim`, `concat`, `speed`, `mix`, `captions`, `audio:patch`, `video:export`):** Execute directly with `scripts/media.mjs` / `scripts/audio-patch.mjs` / `scripts/video-render.mjs`, or use `video-planner` (for multi-stage EDLs) and one fresh `video-builder`. Skip `frontend-design` and scene builders when visual design is unchanged.
+   - **Original creative videos & major revisions:** Follow the [production playbook](docs/video-production.md) using **depth-1 parallel specialist waves** (preserving every creative and QA specialist without middleman relay hops; keep optional `L1` leads only for massive >3 min productions).
+3. **Authoritative Narration Lock.** Lock script + authoritative narration WAV (`--scratch` dry-run → `--cache` + `--timings` `beat-map.json`) before timing-dependent motion or scene construction.
+4. **Verify (Two-Phase QA & Release Decision Table).** Main prepares deterministic review artifacts (`npm run video:review -- pre` / `post`), dispatches two fresh `video-quality-checker` sessions in parallel, and sends their structured reports to `video-reviewer` for independent adjudication (or discloses self-review as non-independent if dispatch is unavailable). Pre-encode reports bind to `{ run, snapshot_hash, render_spec_hash, gate, checker_session_id }`; post-encode reports bind to `{ run, snapshot_hash, render_spec_hash, staged_export_hash, gate, checker_session_id }`. Stale reports after edits are rejected. See the Release Decision Table in `docs/video-production.md`.
+5. **Deliver.** Atomically publish `final.mp4` only after matching gates pass (or mark provisional with explicit user acceptance when a mandatory gate such as human listening or restricted-media inspection is `pending`). Report export path, duration, resolution, stream/loudness checks, and pending gates.
 
 ```text
-L0 Main → L1 Story lead → L2 Writer, then Script editor
-        → L1 Visual lead → L2 Art direction, then Motion design and scene build
-        → L1 Sound lead → L2 Stock sourcing, then Voice and mix
-        → L1 Reviewer → L2 Independent picture and sound checks
+Depth-1 Default Orchestration:
+  [Wave 1] video-writer -> video-script-editor (with --scratch TTS -> Narration Lock)
+           || video-art-director (art-direction.md)
+           || video-stock-scout (verified-asset manifest + staged audio)
+  [Wave 2] video-motion-designer (reusable theme.ts + motion primitives -> real-time Motion Lock)
+  [Wave 3] N x video-builder (disjoint scenes) || video-builder (final mix from approved WAV hash)
+  [Wave 4] Main integrates Root -> Single Immutable Bundle -> Pre-Encode QA (2 checkers -> reviewer)
+           -> Single final.mp4 Render -> Post-Encode QA -> Release Decision Table
 ```
 
-**Model breakdown.** Gemini 3.8 Flash is the project default. Keep routine edits on Flash; select a higher reasoning variant or Gemini Pro if available for complex scripts, timing and review. Workers have no model pin: they inherit the session model. Do not switch providers or assume another model is available. If dispatch is unavailable, execute the roles in order in the main session and state that review was not independent.
+**Model & Session Hygiene.** Workers inherit the active session model by default; do not pin unavailable models or switch providers silently. Start **fresh scoped sessions** for new briefs, materially changed revisions, and independent QA gates (passing a compact manifest, never bloated transcripts); resume a worker session only for bounded fixes against the same artifact set. Keep CPU `libx264`, CPU Kokoro, and CPU Whisper as rollback baselines; GPU paths (`--gpu auto|on`, `--encoder nvenc`, Remotion `gpu`) are opt-in/capability-probed with logged execution providers.
 
-**Handoffs.** Give each worker the brief, input/output paths, owned files, dependencies, expected checks, and what it must return. Leads may delegate their assigned lane; workers never restart this orchestration. Do not send local footage, frames or audio to external services or model tools without permission; metadata-only verification can stay local.
+**Visual design.** Before planning or coding new/restyled visuals, load `frontend-design` and follow [video design gate](docs/video-design.md). Motion designers and scene builders also load `remotion-best-practices`.
 
-**Visual design.** Before planning or coding new or restyled video visuals (Remotion JSX/CSS, titles, overlays, or HTML/CSS), load `frontend-design` and follow the [video design gate](docs/video-design.md). Give its rubric to the planner, builder, and reviewer on delegated jobs. Skip for footage-only edits that leave the design unchanged.
+**Render & Hardware Safety.** Keep one loopback (`127.0.0.1`) Studio session and one render supervisor at a time (default `REMOTION_CONCURRENCY=2` with stepped-down OOM recovery `4 -> 2 -> 1`). Never run concurrent Remotion renders alongside heavy GPU inference.
 
-**Render speed.** Use the [run preview and export commands](videos/README.md). Keep one Studio preview for frame checks and one final render at a time. Parallelize independent asset prep and narration, not competing render jobs. Keep CPU as the final-quality baseline; use the GPU option only for a comparable, validated 720p workload.
-
-**Audio.** For narration, stock music or sound effects, audio-only exports, or mixing, read [audio workflow](docs/audio-workflow.md). On multi-stage jobs, delegate audio sourcing or narration as a separate `video-builder` workstream when independent of the visuals.
+**Audio.** Follow [audio workflow](docs/audio-workflow.md) for narration timing, GPU transcription/SRT (`audio:transcribe`), verified stock manifests (`audio:search`), and locked-picture stem patching (`audio:patch`).

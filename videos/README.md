@@ -1,20 +1,18 @@
 # Separate video runs
 
-`npm run video:new -- "Study Intro"` reserves a fresh run, such as `videos/study-intro-001/`. The same title again gets `study-intro-002/`, never an existing run. The main agent allocates it once and gives that path to every worker.
+`npm run video:new -- "Study Intro"` reserves a fresh run (`videos/study-intro-001/`). Same titles get incremented run folders, never reusing prior runs unless explicitly revising an export.
 
-- `brief.md`: prompt, design direction and edit recipe.
-- `src/`: this run's Remotion entry point and scenes, if needed.
-- `public/`: this run's staged inputs and generated assets.
-- `out/`: this run's exports, preview frames, working files and credits.
-
-From the workspace root (substitute the actual run path):
+- `brief.md`: prompt, design direction, and edit recipe.
+- `src/`: this run's Remotion entry point and scenes.
+- `public/`: staged inputs and generated assets.
+- `out/`: exports, `beat-map.json`, review sheets/manifests, and credits.
 
 ```sh
 export VIDEO_RUN=videos/study-intro-001
-npm run video:preview
-npm run video:render -- Main final.mp4
+npm run video:preview                       # Loopback Remotion Studio (127.0.0.1)
+npm run video:review -- pre Main            # Immutable bundle + contact sheets + 1:1 stills
+npm run video:render -- Main final.mp4 cpu --bundle videos/study-intro-001/out/.bundle-<hash> --stage-only
+npm run video:review -- post videos/study-intro-001/out/.staged-<pid>-final.mp4
 ```
 
-Reuse the Studio URL for review rather than launching separate browsers per frame. Run the final export once; this command preserves the composition's resolution and frame rate and refuses to overwrite. To try the RTX 3050 on a comparable 720p composition, use `npm run video:render -- Main final-gpu.mp4 gpu`. This selects NVENC at 8 Mbps, not GPU acceleration for JSX layout or drawing. Expect a different file size; this preset is not a quality guarantee for different scenes or resolutions. If NVENC fails or the result doesn't pass review, rerun with `cpu` (the default).
-
-For FFmpeg-only edits, write directly to the run's `out/` using `ffmpeg -n`. The narration and media trim helpers also respect `VIDEO_RUN`. Use the input paths supplied for this job; do not search old runs for a substitute. The root demo and shared tools remain separate from production runs.
+`video:render` uses an external OOM-recovery supervisor (`REMOTION_CONCURRENCY` defaults to `2`, stepping down `4 -> 2 -> 1` on killed workers) and publishes atomically without overwriting existing files. GPU encoding (`gpu` / `--encoder nvenc`) stays opt-in until validated against CPU `libx264` on your target workload.
